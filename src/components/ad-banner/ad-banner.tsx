@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import { MouseEvent, useState } from "react";
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
 import "./ad-banner.css";
 
 export const AdBanner = () => {
-  const [currentSlide, setCurrentSlide] = React.useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     initial: 0,
@@ -40,16 +40,18 @@ export const AdBanner = () => {
           <>
             <Arrow
               left
-              onClick={(e) =>
-                e.stopPropagation() || instanceRef.current?.prev()
-              }
+              onClick={(e) => {
+                e.stopPropagation();
+                instanceRef.current?.prev();
+              }}
               disabled={currentSlide === 0}
             />
 
             <Arrow
-              onClick={(e) =>
-                e.stopPropagation() || instanceRef.current?.next()
-              }
+              onClick={(e) => {
+                e.stopPropagation();
+                instanceRef.current?.next();
+              }}
               disabled={
                 currentSlide ===
                 instanceRef.current.track.details.slides.length - 1
@@ -82,7 +84,7 @@ export const AdBanner = () => {
 function Arrow(props: {
   disabled: boolean;
   left?: boolean;
-  onClick: (e) => void;
+  onClick: (e: MouseEvent<SVGSVGElement>) => void;
 }) {
   const disabled = props.disabled ? " arrow--disabled" : "";
   return (

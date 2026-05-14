@@ -5,6 +5,29 @@ import { ICart, ICartItem } from "../utils/interfaces/cart.interface";
 import { currencyExchangerNumber } from "../utils/utils";
 import { toast } from "react-toastify";
 
+const cartInitialValue: ICart = {
+  items: [],
+  totalPrice: 0,
+  totalItems: 0,
+};
+
+const normalizeCart = (cart: ICart | undefined): ICart => {
+  const items = Array.isArray(cart?.items) ? cart.items : [];
+  const totalPrice = items.reduce(
+    (sum, item) => sum + Number(item.price) * item.quantity,
+    0
+  );
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  return {
+    ...cartInitialValue,
+    ...cart,
+    items,
+    totalPrice,
+    totalItems,
+  };
+};
+
 interface ICartContext {
   handleAddToCart: (product: IProduct, quantity: number) => void;
   handleRemoveFromCart: (cartItem: ICartItem) => void;
@@ -27,99 +50,88 @@ interface IProps {
 }
 
 export const CartContextProvider = ({ children }: IProps) => {
-  const cartInitialValue: ICart = {
-    items: [],
-    totalPrice: 0,
-    totalItems: 0,
-  };
-
   const [cart, setCart] = useLocalStorage<ICart | undefined>(
     "cart",
     cartInitialValue
   );
+  const normalizedCart = normalizeCart(cart);
 
   const handleAddToCart = (product: IProduct, quantity: number) => {
-    if (cart) {
-      const isProductAlreadyInCart = cart.items.some(
-        (p) => p.id === product.id
+    const isProductAlreadyInCart = normalizedCart.items.some(
+      (p) => p.id === product.id
+    );
+
+    toast.success("Mahsulot savatga qo'shildi");
+
+    if (isProductAlreadyInCart) {
+      const updatedCartItems = normalizedCart.items.map((cartItem) => {
+        if (cartItem.id === product.id) {
+          return {
+            ...cartItem,
+            quantity: cartItem.quantity + quantity,
+          };
+        }
+
+        return cartItem;
+      });
+
+      setCart(
+        normalizeCart({
+          ...normalizedCart,
+          items: updatedCartItems,
+        })
       );
 
-      toast.success("Mahsulot savatga qo'shildi");
-
-      if (isProductAlreadyInCart) {
-        const updatedCartItems = cart.items.map((cartItem) => {
-          if (cartItem.id === product.id) {
-            return {
-              ...cartItem,
-              quantity: cartItem.quantity + quantity,
-            };
-          } else {
-            return cartItem;
-          }
-        });
-
-        setCart({
-          ...cart,
-          items: updatedCartItems,
-          totalPrice:
-            cart.totalPrice + currencyExchangerNumber(product.price) * quantity,
-        });
-
-        return;
-      }
-
-      const cartItem: ICartItem = {
-        id: product.id,
-        images: product.images,
-        price: currencyExchangerNumber(product.price),
-        quantity,
-        title: product.title,
-      };
-
-      const updatedCart: ICart = {
-        ...cart,
-        items: [...cart.items, cartItem],
-        totalPrice:
-          cart.totalPrice + currencyExchangerNumber(product.price) * quantity,
-      };
-
-      setCart(updatedCart);
+      return;
     }
+
+    const cartItem: ICartItem = {
+      id: product.id,
+      images: product.images,
+      price: currencyExchangerNumber(product.price),
+      quantity,
+      title: product.title,
+    };
+
+    setCart(
+      normalizeCart({
+        ...normalizedCart,
+        items: [...normalizedCart.items, cartItem],
+      })
+    );
   };
 
   const handleRemoveFromCart = (cartItem: ICartItem) => {
-    if (cart) {
-      const updatedCart = cart.items.filter((item) => item.id !== cartItem.id);
+    const updatedCartItems = normalizedCart.items.filter(
+      (item) => item.id !== cartItem.id
+    );
 
-      setCart({
-        ...cart,
-        items: updatedCart,
-        totalPrice: cart.totalPrice - cartItem.price * cartItem.quantity,
-      });
-    }
+    setCart(
+      normalizeCart({
+        ...normalizedCart,
+        items: updatedCartItems,
+      })
+    );
   };
 
   const modifyCartItem = (cartItem: ICartItem, productQuantity: number) => {
-    if (cart) {
-      const updatedCartItems = cart.items.map((item) => {
-        if (item.id === cartItem.id) {
-          return {
-            ...item,
-            quantity: productQuantity,
-          };
-        } else {
-          return item;
-        }
-      });
+    const updatedCartItems = normalizedCart.items.map((item) => {
+      if (item.id === cartItem.id) {
+        return {
+          ...item,
+          quantity: productQuantity,
+        };
+      }
 
-      setCart({
-        ...cart,
+      return item;
+    });
+
+    setCart(
+      normalizeCart({
+        ...normalizedCart,
         items: updatedCartItems,
-        totalPrice:
-          cart.totalPrice +
-          cartItem.price * (productQuantity - cartItem.quantity),
-      });
-    }
+      })
+    );
   };
 
   const value = useMemo(() => {
@@ -127,9 +139,9 @@ export const CartContextProvider = ({ children }: IProps) => {
       handleAddToCart,
       handleRemoveFromCart,
       modifyCartItem,
-      cart: cart as ICart,
+      cart: normalizedCart,
     };
-  }, [cart]);
+  }, [normalizedCart]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };

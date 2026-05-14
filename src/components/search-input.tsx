@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
-import React, { useState } from "react";
+import { useState } from "react";
 
 export const SearchInput = () => {
   const [inputValue, setInputValue] = useState<string>("");
