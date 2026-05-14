@@ -1,7 +1,7 @@
 # Uzum Market Clone
 
 <p align="center">
-	<img src="./public/icons/logo.svg" alt="Uzum Market Clone logo" width="84" />
+	<img src="./public/image.png" alt="Uzum Market Clone preview" width="100%" />
 </p>
 
 <p align="center">
@@ -14,6 +14,10 @@
 	<img src="https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite badge" />
 	<img src="https://img.shields.io/badge/TailwindCSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind badge" />
 </p>
+
+## Preview
+
+![Uzum Market Clone Preview](./public/image.png)
 
 ## About
 
